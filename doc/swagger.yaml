@@ -1,0 +1,98 @@
+openapi: 3.0.0
+info:
+  title: Compute API
+  description: An API to perform a series of arithmetic operations on an array of numbers using an AST.
+  version: 0.0.1
+paths:
+  /compute:
+    post:
+      summary: Perform arithmetic operations on an array of numbers using an AST
+      description: This endpoint allows you to submit an array of numbers and an AST representing the series of arithmetic operations to be performed on them.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/compute_body'
+        required: true
+      responses:
+        "200":
+          description: Successfully performed arithmetic operations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "422":
+          description: "Unprocessable entity, e.g., division by zero"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_422'
+components:
+  schemas:
+    ASTNode:
+      required:
+      - type
+      - value
+      type: object
+      properties:
+        type:
+          type: string
+          description: Type of AST node
+          enum:
+          - operation
+          - number
+          - variable
+        value:
+          description: Value of the node if it is a number or the operation
+          oneOf:
+          - type: string
+          - type: number
+        index:
+          type: integer
+          description: Index of the variable in the numbers array (only for variable nodes)
+        left:
+          $ref: '#/components/schemas/ASTNode'
+        right:
+          $ref: '#/components/schemas/ASTNode'
+      description: A node in the Abstract Syntax Tree
+    compute_body:
+      type: object
+      properties:
+        numbers:
+          type: array
+          description: Array of numbers to perform operations on
+          example:
+          - 10
+          - 5
+          - 2
+          items:
+            type: number
+        ast:
+          $ref: '#/components/schemas/ASTNode'
+    inline_response_200:
+      type: object
+      properties:
+        result:
+          type: number
+          description: The result of the operations
+          example: 14
+    inline_response_400:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Invalid input data
+    inline_response_422:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Division by zero is not allowed
